@@ -10,4 +10,4 @@ This implementation is inspired by [Hans Theobald Beyer](https://www.firespark.d
 
 * Make distribution of droplets configurable (uniform, normal, ...)
 * Memory and CPU cycle optimizations
-* Design a multi threaded solution (press x for press x to doubt)
+* Design a multi threaded solution (press x to doubt)
