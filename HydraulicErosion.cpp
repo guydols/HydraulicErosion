@@ -48,8 +48,8 @@ void HydraulicErosion::Simulate(std::vector<std::vector<float>> &map) {
             HeightAndGradient heightAndGradient;
 
             // Cast position floats to ints
-            droplet.node.x = static_cast<int>(droplet.position.x);
-            droplet.node.y = static_cast<int>(droplet.position.y);
+            droplet.node.x = (int)droplet.position.x;
+            droplet.node.y = (int)droplet.position.y;
 
             // Calculate droplet's offset inside the cell (0,0) = at NW node, (1,1) = at SE node
             droplet.cellOffset.x = droplet.position.x - droplet.node.x;
@@ -76,12 +76,9 @@ void HydraulicErosion::Simulate(std::vector<std::vector<float>> &map) {
 
             // Stop simulating droplet if it's not moving or has flowed over edge of map
             if ((droplet.direction.x == 0 && droplet.direction.y == 0) ||
-            droplet.position.x < 0 ||
-            droplet.position.x >= xMax ||
-            droplet.position.y < 0 ||
-            droplet.position.y >= yMax ||
-            droplet.node.x < 0 ||
-            droplet.node.y < 0) {
+            droplet.position.x < 0 || droplet.position.x >= xMax ||
+            droplet.position.y < 0 || droplet.position.y >= yMax ||
+            droplet.node.x < 0 || droplet.node.y < 0) {
                 break;
             }
 
@@ -89,7 +86,7 @@ void HydraulicErosion::Simulate(std::vector<std::vector<float>> &map) {
             float newHeight = this->CalculateHeightAndGradient(map, droplet).height;
             float oldHeight = heightAndGradient.height;
             float deltaHeight = newHeight - oldHeight;
-
+            
             // Calculate the droplet's sediment capacity (higher when moving fast down a slope and contains lots of water)
             float sedimentCapacity = std::max(-deltaHeight * droplet.velocity * droplet.water * this->config.sedimentCapacityFactor, this->config.minSedimentCapacity);
 
