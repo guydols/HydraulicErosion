@@ -11,22 +11,32 @@ HydraulicErosion::~HydraulicErosion(){
 
 void HydraulicErosion::Simulate(std::vector<std::vector<float>> &map) {
 
-//  seed the random number generator
-    std::srand(this->config.seed);
+//    Needed to seed if we use the std::rand() below instead of std::mt19937
+//    std::srand(this->config.seed);
 
 //  calculate the max value for both axis of the heightmap
     float xMax = this->config.mapWidth - 1.0;
     float yMax = this->config.mapHeight - 1.0;
 
+//  Setup uniformly distributed random float generation
+    std::mt19937 generator(this->config.seed);
+    std::uniform_real_distribution<float>  distrX(this->config.erosionRadius, xMax - this->config.erosionRadius);
+    std::uniform_real_distribution<float>  distrY(this->config.erosionRadius, yMax - this->config.erosionRadius);
+
     for (int iteration = 0; iteration < this->config.numIterations; iteration++) {
 
         Droplet droplet; // Make new droplet, with random position
-        droplet.position.x = (xMax - this->config.erosionRadius) +
-                             (std::rand() / (RAND_MAX / ((0 + this->config.erosionRadius) -
-                             (xMax - this->config.erosionRadius))));
-        droplet.position.y = (yMax - this->config.erosionRadius) +
-                             (std::rand() / (RAND_MAX / ((0 + this->config.erosionRadius) -
-                             (yMax - this->config.erosionRadius))));
+        droplet.position.x = distrX(generator);
+        droplet.position.y = distrY(generator);
+
+//        Bell Curve like distribution of random coordinates
+//        droplet.position.x = (xMax - this->config.erosionRadius) +
+//                             (std::rand() / (RAND_MAX / ((this->config.erosionRadius) -
+//                             (xMax - this->config.erosionRadius))));
+//        droplet.position.y = (yMax - this->config.erosionRadius) +
+//                             (std::rand() / (RAND_MAX / ((this->config.erosionRadius) -
+//                             (yMax - this->config.erosionRadius))));
+
         droplet.direction.x = 0.0;
         droplet.direction.y = 0.0;
         droplet.velocity = this->config.initialVelocity;
