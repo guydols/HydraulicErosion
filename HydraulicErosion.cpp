@@ -100,24 +100,30 @@ void HydraulicErosion::Simulate(std::vector<std::vector<float>> &map) {
 
 HeightAndGradient HydraulicErosion::CalculateHeightAndGradient(std::vector<std::vector<float>> &map, Droplet &droplet) {
 
+    int nodeX = (int)droplet.position.x;
+    int nodeY = (int)droplet.position.y;
+
     // Calculate droplet's offset inside the cell (0,0) = at NW node, (1,1) = at SE node
-    float x = droplet.position.x - droplet.node.x;
-    float y = droplet.position.y - droplet.node.y;
+    float offsetX = droplet.position.x - nodeX;
+    float offsetY = droplet.position.y - nodeY;
 
     // Get heights of the four nodes of this cell
-    float heightNW = map[droplet.node.y][droplet.node.x];
-    float heightNE = map[droplet.node.y][droplet.node.x + 1];
-    float heightSW = map[droplet.node.y + 1][droplet.node.x];
-    float heightSE = map[droplet.node.y + 1][droplet.node.x + 1];
+    float heightNW = map[nodeX][nodeY];
+    float heightNE = map[nodeX + 1][nodeY];
+    float heightSW = map[nodeX][nodeY + 1];
+    float heightSE = map[nodeX + 1][nodeY + 1];
 
     // Calculate droplet's direction of flow with bilinear interpolation of height difference along the edges
-    float gradientX = (heightNE - heightNW) * (1 - y) +
-                      (heightSE - heightSW) * y;
-    float gradientY = (heightSW - heightNW) * (1 - x) +
-                      (heightSE - heightNE) * x;
+    float gradientX = (heightNE - heightNW) * (1 - offsetY) +
+                      (heightSE - heightSW) * offsetY;
+    float gradientY = (heightSW - heightNW) * (1 - offsetX) +
+                      (heightSE - heightNE) * offsetX;
 
     // Calculate height with bilinear interpolation of the heights of the nodes of the cell
-    float height = heightNW * (1 - x) * (1 - y) + heightNE * x * (1 - y) + heightSW * (1 - x) * y + heightSE * x * y;
+    float height = heightNW * (1 - offsetX) * (1 - offsetY) +
+                   heightNE * offsetX * (1 - offsetY) +
+                   heightSW * (1 - offsetX) * offsetY +
+                   heightSE * offsetX * offsetY;
 
     HeightAndGradient returnVar;
     returnVar.height = height;
@@ -134,10 +140,10 @@ void HydraulicErosion::Deposit(std::vector<std::vector<float>> &map, Droplet &dr
 
     // Add the sediment to the four nodes of the current cell using bilinear interpolation
     // Deposition is not distributed over a radius (like erosion) so that it can fill small pits
-    map[droplet.node.y][droplet.node.x] += amountToDeposit * (1 - droplet.cellOffset.x) * (1 - droplet.cellOffset.y);
-    map[droplet.node.y][droplet.node.x + 1] += amountToDeposit * droplet.cellOffset.x * (1 - droplet.cellOffset.y);
-    map[droplet.node.y + 1][droplet.node.x] += amountToDeposit * (1 - droplet.cellOffset.x) * droplet.cellOffset.y;
-    map[droplet.node.y + 1][droplet.node.x + 1] += amountToDeposit * droplet.cellOffset.x * droplet.cellOffset.y;
+    map[droplet.node.x][droplet.node.y] += amountToDeposit * (1 - droplet.cellOffset.x) * (1 - droplet.cellOffset.y);
+    map[droplet.node.x + 1][droplet.node.y] += amountToDeposit * droplet.cellOffset.x * (1 - droplet.cellOffset.y);
+    map[droplet.node.x][droplet.node.y + 1] += amountToDeposit * (1 - droplet.cellOffset.x) * droplet.cellOffset.y;
+    map[droplet.node.x + 1][droplet.node.y + 1] += amountToDeposit * droplet.cellOffset.x * droplet.cellOffset.y;
 
 }
 
@@ -161,8 +167,8 @@ void HydraulicErosion::Erode(std::vector<std::vector<float>> &map, Droplet &drop
     brush.end.y = std::min(this->config.mapHeight - 1, (int)droplet.position.y + radius);
 
     // Calculate the weights of each point on the brush
-    for (int y = brush.start.y; y <= brush.end.y; y++) {
-        for (int x = brush.start.x; x <= brush.end.x; x++) {
+    for (int x = brush.start.x; x <= brush.end.x; x++) {
+        for (int y = brush.start.y; y <= brush.end.y; y++) {
             float sqrDst = (x - (int)droplet.position.x) * (x - (int)droplet.position.x) +
                            (y - (int)droplet.position.y) * (y - (int)droplet.position.y);
             if (sqrDst <= radius * radius) {
@@ -174,8 +180,8 @@ void HydraulicErosion::Erode(std::vector<std::vector<float>> &map, Droplet &drop
     }
 
     // Erode the map proporsional to the weights in the brush
-    for (int y = brush.start.y; y <= brush.end.y; y++) {
-        for (int x = brush.start.x; x <= brush.end.x; x++) {
+    for (int x = brush.start.x; x <= brush.end.x; x++) {
+        for (int y = brush.start.y; y <= brush.end.y; y++) {
             brush.weights[x - brush.start.x][y - brush.start.y] /= brush.weightSum;
             float weighedErodeAmount = amountToErode * brush.weights[x - brush.start.x][y - brush.start.y];
             float deltaSediment = (map[x][y] < weighedErodeAmount) ? map[x][y] : weighedErodeAmount;
