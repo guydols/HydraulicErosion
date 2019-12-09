@@ -6,8 +6,35 @@ This implementation is inspired by [Hans Theobald Beyer](https://www.firespark.d
 * Made for 2d maps of floats ( `std::vector<std::vector<float> >` )
 * The map can be any width and height (not limited to a square)
 
+## Example
+
+Input height map (1024x1024) of simplex noise:
+![Input for erosion process](https://github.com/guydols/HydraulicErosion/blob/master/img/input.png)
+
+Output height map with erosion config (32768 droplets of rain):
+
+```
+seed = 1337;
+numIterations = 32768;
+erosionRadius = 4;
+inertia = .3f;
+sedimentCapacityFactor = 4;
+minSedimentCapacity = .01f;
+erodeSpeed = .8f;
+depositSpeed = .8f;
+evaporateSpeed = .01f;
+gravity = 10;
+maxDropletLifetime = 128;
+initialWaterVolume = 1;
+initialVelocity = 1;
+mapWidth = 1024;
+mapHeight = 1024;
+```
+
+![Output of erosion process](https://github.com/guydols/HydraulicErosion/blob/master/img/output.png)
+
 ## TODO
 
-* Make distribution of droplets configurable (uniform, normal, ...)
+* ~~Make distribution of droplets configurable (uniform, normal, ...)~~
 * Memory and CPU cycle optimizations
-* Design a multi threaded solution (press x to doubt)
+* Optimize erosion brush (unnecessary building of brush)
